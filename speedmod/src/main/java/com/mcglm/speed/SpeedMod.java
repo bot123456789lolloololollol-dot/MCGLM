@@ -8,7 +8,7 @@ import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 
-import java.util.UUID;
+import net.minecraft.util.Identifier;
 
 /**
  * Feature 6: +5% movement speed, permanently (re-applied each tick if the
@@ -21,10 +21,10 @@ import java.util.UUID;
  */
 public class SpeedMod implements ClientModInitializer {
 
-    /** Any fixed UUID identifies our modifier so we never stack duplicates. */
-    private static final UUID MODIFIER_ID = UUID.fromString("d76f4b7a-6f0a-4bfd-9a0a-9f2a4d6f1c05");
+    /** A fixed identifier lets us detect the modifier and avoid stacking it. */
+    private static final Identifier MODIFIER_ID = Identifier.of("mcglm", "speed_boost");
 
-    /** 0.05 = +5%. MULTIPLICATION_TOTAL stacks with sprint's +30%. */
+    /** 0.05 = +5%. ADD_MULTIPLIED_TOTAL stacks with sprint's +30%. */
     private static final double SPEED_MULTIPLIER = 0.05;
 
     @Override
@@ -36,16 +36,15 @@ public class SpeedMod implements ClientModInitializer {
         ClientPlayerEntity player = client.player;
         if (player == null) return;
 
-        EntityAttributeInstance speed = player.getAttribute(
+        EntityAttributeInstance speed = player.getAttributeInstance(
                 EntityAttributes.GENERIC_MOVEMENT_SPEED);   // 1.21.2+: EntityAttributes.MOVEMENT_SPEED
         if (speed == null || speed.getModifier(MODIFIER_ID) != null) return;
 
         // transient = not persisted with the player, so relogs/dimension hops
         // that rebuild the attribute just get it back on the next tick
-        speed.addTransientModifier(new EntityAttributeModifier(
+        speed.addTemporaryModifier(new EntityAttributeModifier(
                 MODIFIER_ID,
-                "MCGLM speed boost",
                 SPEED_MULTIPLIER,
-                EntityAttributeModifier.Operation.MULTIPLICATION_TOTAL));
+                EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
     }
 }

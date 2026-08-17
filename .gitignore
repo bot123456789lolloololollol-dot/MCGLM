@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 python/logout_spots.json
+**/build/
+**/.gradle/

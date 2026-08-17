@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "mcglm-speed",
+  "version": "${version}",
+  "name": "MCGLM Speed",
+  "description": "Client-side movement speed modifier for MCGLM.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.mcglm.speed.SpeedMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "1.21.1"
+  }
+}

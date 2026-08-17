@@ -85,7 +85,8 @@ public class FeedMod implements ClientModInitializer {
         // the collection of StatusEffectInstance.
         p.getStatusEffects().forEach(e -> {
             JsonObject o = new JsonObject();
-            o.addProperty("id", Registries.STATUS_EFFECT.getId(e.getEffectType()).toString());
+            o.addProperty("id", e.getEffectType().getKey()
+                    .map(key -> key.getValue().toString()).orElse("unknown"));
             o.addProperty("ticks", e.getDuration());
             effects.add(o);
         });

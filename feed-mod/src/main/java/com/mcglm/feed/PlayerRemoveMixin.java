@@ -3,8 +3,8 @@ package com.mcglm.feed;
 import com.google.gson.JsonObject;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.packet.s2c.play.PlayerRemoveS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,41 +22,23 @@ import java.util.UUID;
 @Mixin(ClientPlayNetworkHandler.class)
 public abstract class PlayerRemoveMixin {
 
-    // The method name for handling PlayerListS2CPacket depends on your yarn version:
-    //   1.21.0 / 1.21.1: "onPlayerList"
-    //   1.21.2 / 1.21.3 / 1.21.4: "handlePlayerList"
-    // If compilation fails on the line below, search ClientPlayNetworkHandler for the
-    // method that takes PlayerListS2CPacket and update this string accordingly.
-    @Inject(method = "onPlayerList", at = @At("HEAD"))
-    private void mcglm$onPlayerList(PlayerListS2CPacket packet, CallbackInfo ci) {
+    @Inject(method = "onPlayerRemove", at = @At("HEAD"))
+    private void mcglm$onPlayerRemove(PlayerRemoveS2CPacket packet, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         String dim = client.world != null
                 ? client.world.getRegistryKey().getValue().toString() : "?";
 
-        boolean isLogout = packet.getActions().contains(PlayerListS2CPacket.Action.REMOVE_PLAYER);
-        boolean isLogin  = packet.getActions().contains(PlayerListS2CPacket.Action.ADD_PLAYER);
-
-        for (PlayerListS2CPacket.Entry entry : packet.getEntries()) {
-            UUID id = entry.profileId();
-
-            if (isLogin) {
-                // player joined or respawned — clear any existing ghost marker
-                FeedMod.LAST_KNOWN.remove(id);
-                FeedMod.NAMES.remove(id);
-                JsonObject o = new JsonObject();
-                o.addProperty("t", "login");
-                o.addProperty("name", entry.profile().getName());
-                FeedMod.send(o);
-                continue;
-            }
-
-            if (!isLogout) continue;
+        for (UUID id : packet.profileIds()) {
             String name = FeedMod.NAMES.getOrDefault(id, id.toString().substring(0, 8));
 
             double[] pos = null;
             if (client.world != null) {
-                Entity e = client.world.getEntity(id);   // entity may already be gone
-                if (e != null) pos = new double[]{e.getX(), e.getY(), e.getZ()};
+                for (PlayerEntity player : client.world.getPlayers()) {
+                    if (player.getUuid().equals(id)) {
+                        pos = new double[]{player.getX(), player.getY(), player.getZ()};
+                        break;
+                    }
+                }
             }
             if (pos == null) {
                 double[] cached = FeedMod.LAST_KNOWN.get(id);   // fallback: our cache

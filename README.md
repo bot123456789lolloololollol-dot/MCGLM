@@ -272,7 +272,7 @@ the feed mod isn't sending data.
 
 **File:** `speedmod/` (Fabric mod)
 
-**What it does:** Adds a permanent +5% `MULTIPLICATION_TOTAL` modifier to the
+**What it does:** Adds a permanent +5% `ADD_MULTIPLIED_TOTAL` modifier to the
 `generic.movement_speed` attribute of your player entity. This makes you
 slightly faster in all situations — walking, sprinting, swimming, flying.
 
@@ -346,7 +346,43 @@ machine. No data about real people is collected or transmitted.
 
 Both mods (`feed-mod/` and `speedmod/`) follow the same build process:
 
-### Step 1: Generate a Fabric mod template
+### Step 1: Match the Minecraft profile
+
+The included projects target **Minecraft 1.21.1**, Java 21, Fabric Loader
+0.16.5, and Fabric API 0.105.0. In Feather, use a **Fabric 1.21.1** profile.
+A jar built for another Minecraft minor version is not interchangeable.
+
+### Step 2: Build the included projects
+
+From PowerShell in the repository root:
+```
+cd feed-mod
+.\gradlew.bat build
+cd ..\speedmod
+.\gradlew.bat build
+```
+
+The installable jars are `feed-mod\build\libs\mcglm-feed-1.0.0.jar` and
+`speedmod\build\libs\mcglm-speed-1.0.0.jar`.
+
+### Step 3: Add them to Feather
+
+In Feather's selected Fabric profile, open the Mods area and add both local
+Fabric jars. Enable them before launching. If the launcher has no local-mod
+control, copy both jars into that profile's `mods` directory. Fabric API must
+also be enabled; MCGLM does not bundle it.
+
+The old template-copy workflow is no longer needed because both directories
+are complete Fabric/Loom projects.
+
+### Version changes
+
+If your profile is not 1.21.1, update the four version properties in
+`feed-mod/gradle.properties` and `speedmod/gradle.properties` together, then
+rebuild. Yarn names and mixin methods can change between minor versions, so a
+successful build is required before installing the jars.
+
+### Legacy template workflow (not required)
 
 Go to [fabricmc.net/develop/template/](https://fabricmc.net/develop/template/):
 1. Select your **exact Minecraft version** (e.g., 1.21.1 or 1.21.4).
@@ -433,13 +469,11 @@ Known drift points:
 
 **About loading third-party mod jars on Feather:**
 
-Feather Client has its own built-in mod manager. There are two scenarios:
-
-1. **Feather accepts the jar** — Add it through Feather's mod screen (Settings → Mods → Add). This is the ideal case. The feed-mod and speedmod are standard Fabric client mods with no dependencies beyond Fabric API, which Feather already ships.
-
-2. **Feather rejects the jar** — Some Feather builds lock down the mod list to their curated set. If this happens, you have two options:
-   - **Option A:** Use a plain [Fabric](https://fabricmc.net/use/installer/) installation in the official launcher with the same Minecraft account. Everything works identically — same server, same mods.
-   - **Option B:** Use Feather's built-in modules if they cover the feature. Feather has its own minimap, HUD, and some macro modules. They won't match the MCGLM tools exactly, but they're an alternative if you can't load external mods.
+Feather advertises support for adding your own Fabric mods. Use its local-mod
+control when available; if a particular release blocks custom jars, use a
+normal Fabric 1.21.1 profile in the official launcher with the same server and
+account. The Python overlays and AHK macros remain external to Feather and do
+not belong in the `mods` directory.
 
 **The AHK macros (features 1 & 2) always work regardless** — they're separate
 processes sending keyboard/mouse input to whatever window is focused. Feather

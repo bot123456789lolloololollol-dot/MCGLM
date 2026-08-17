@@ -1,7 +1,7 @@
 # MCGLM speedmod (feature 6 - 1.05x movement speed)
 
 A ~40-line client-side Fabric mod that adds a permanent +5%
-`MULTIPLICATION_TOTAL` modifier to your movement-speed attribute every tick.
+`ADD_MULTIPLIED_TOTAL` modifier to your movement-speed attribute every tick.
 
 Why a mod and not AHK/Python: your walk speed is an *attribute inside the
 client's living-entity instance*. No amount of external mouse/keyboard input
@@ -17,9 +17,15 @@ sprint 5.612 -> ~5.89 b/s (sprint's +30% stacks multiplicatively).
 
 ## Build
 
-Same template flow as feed-mod (https://fabricmc.net/develop/template/,
-1.21.x, client, Fabric API). Copy the Java file in, then
-`src/main/resources/fabric.mod.json`:
+This directory is already a complete Fabric/Loom project targeting Minecraft
+1.21.1. Build it directly:
+
+```
+.\gradlew.bat build
+```
+
+The installable jar is `build/libs/mcglm-speed-1.0.0.jar`. It requires Fabric
+API in the Feather profile; mod metadata is already included.
 
 ```json
 {
@@ -33,8 +39,9 @@ Same template flow as feed-mod (https://fabricmc.net/develop/template/,
 }
 ```
 
-`gradlew build` -> jar in `build/libs/`. Load via Feather's mod support, or a
-plain Fabric profile if Feather rejects the jar.
+Add the resulting jar through Feather's local Fabric mod control, or place it
+in the selected profile's `mods` directory. Keep the Minecraft version at
+1.21.1, or rebuild against the exact profile version.
 
 ## Verify
 

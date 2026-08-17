@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "com.mcglm.feed",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["PlayerRemoveMixin", "PlayerListMixin"],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

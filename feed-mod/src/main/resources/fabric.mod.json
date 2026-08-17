@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "mcglm-feed",
+  "version": "${version}",
+  "name": "MCGLM Feed",
+  "description": "Local-only in-game state feed for MCGLM overlays.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.mcglm.feed.FeedMod"]
+  },
+  "mixins": ["mcglm-feed.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "1.21.1"
+  }
+}
