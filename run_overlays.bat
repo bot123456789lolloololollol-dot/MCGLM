@@ -1,21 +1,46 @@
 @echo off
-:: MCGLM overlay launcher — opens all three Python tools in separate windows
-:: Requirements: Python 3.10+ installed, "pip install -r requirements.txt" run
-:: The game must have the feed-mod loaded and be in windowed/borderless mode
+setlocal EnableExtensions
+
+:: MCGLM overlay launcher for Dawn / Minecraft 26.2.
+:: Install dependencies first with: python -m pip install -r requirements.txt
+:: The game must have the feed-mod loaded and be in windowed/borderless mode.
+
+set "ROOT=%~dp0"
+set "PYTHON_EXE=python"
+set "PYTHON_ARGS="
+
+:: Prefer a project-local environment, then the Windows Python launcher.
+if exist "%ROOT%.venv\Scripts\python.exe" (
+    set "PYTHON_EXE=%ROOT%.venv\Scripts\python.exe"
+) else (
+    where py >nul 2>&1
+    if not errorlevel 1 (
+        set "PYTHON_EXE=py"
+        set "PYTHON_ARGS=-3"
+    )
+)
+
+"%PYTHON_EXE%" %PYTHON_ARGS% --version >nul 2>&1
+if errorlevel 1 (
+    echo Python 3.10 or newer was not found.
+    echo Install Python and run: python -m pip install -r requirements.txt
+    pause
+    exit /b 1
+)
 
 echo MCGLM overlay launcher
 echo =====================
 echo.
 echo Starting trajectory overlay (F9 to quit)...
-start "MCGLM Trajectory" cmd /k "python "%~dp0python\trajectory_overlay.py""
+start "MCGLM Trajectory" "%ComSpec%" /k "cd /d ""%ROOT%"" && ""%PYTHON_EXE%"" %PYTHON_ARGS% ""%ROOT%python\trajectory_overlay.py"""
 timeout /t 1 /nobreak >nul
 
 echo Starting logout tracker (F9 to quit)...
-start "MCGLM Logout" cmd /k "python "%~dp0python\logout_tracker.py""
+start "MCGLM Logout" "%ComSpec%" /k "cd /d ""%ROOT%"" && ""%PYTHON_EXE%"" %PYTHON_ARGS% ""%ROOT%python\logout_tracker.py"""
 timeout /t 1 /nobreak >nul
 
 echo Starting status HUD (F9 to quit)...
-start "MCGLM HUD" cmd /k "python "%~dp0python\status_hud.py""
+start "MCGLM HUD" "%ComSpec%" /k "cd /d ""%ROOT%"" && ""%PYTHON_EXE%"" %PYTHON_ARGS% ""%ROOT%python\status_hud.py"""
 
 echo.
 echo All overlays started. Press F9 in any overlay window to close it.

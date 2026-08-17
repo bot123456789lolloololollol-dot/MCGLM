@@ -1,2 +1,4 @@
-pygame>=2.5
-pynput>=1.7
+# MCGLM Python overlays for Minecraft 26.2 / Dawn
+# Python 3.10 or newer is recommended (see README.md).
+pygame>=2.6.1
+pynput>=1.7.7
