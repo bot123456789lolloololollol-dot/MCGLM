@@ -11,7 +11,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.resources.Identifier;
 
 /**
- * Feature 6: +5% movement speed, permanently (re-applied each tick if the
+ * Feature 6: +50% movement speed, permanently (re-applied each tick if the
  * server or a dimension change clears it).
  *
  * Minecraft 26.2 uses Mojang's official names and the MOVEMENT_SPEED holder.
@@ -21,8 +21,8 @@ public class SpeedMod implements ClientModInitializer {
     /** A fixed identifier lets us detect the modifier and avoid stacking it. */
     private static final Identifier MODIFIER_ID = Identifier.fromNamespaceAndPath("mcglm", "speed_boost");
 
-    /** 0.05 = +5%. ADD_MULTIPLIED_TOTAL stacks with sprint's +30%. */
-    private static final double SPEED_MULTIPLIER = 0.05;
+    /** 0.50 = +50%. ADD_MULTIPLIED_TOTAL stacks with sprint's +30%. */
+    private static final double SPEED_MULTIPLIER = 0.50;
 
     @Override
     public void onInitializeClient() {

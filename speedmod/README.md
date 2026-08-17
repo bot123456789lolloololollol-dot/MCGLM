@@ -1,6 +1,6 @@
-# MCGLM speedmod (feature 6 - 1.05x movement speed)
+# MCGLM speedmod (feature 6 - 1.50x movement speed, testing)
 
-A ~40-line client-side Fabric mod that adds a permanent +5%
+A ~40-line client-side Fabric mod that adds a permanent +50%
 `ADD_MULTIPLIED_TOTAL` modifier to your movement-speed attribute every tick.
 
 Why a mod and not AHK/Python: your walk speed is an *attribute inside the
@@ -9,11 +9,10 @@ changes that attribute; you have to touch the entity. The modifier is
 transient (never saved to player data), so it simply re-applies on world join
 — that's what the tick handler is for.
 
-Why 1.05x is safe on a vanilla/no-anticheat server: vanilla servers only
-reject position packets that jump absurdly far per tick (on the order of 10
-blocks), and they never validate the speed attribute itself. +5% is ~0.2
-blocks/s and passes trivially. Expected numbers: walk 4.317 -> ~4.53 b/s,
-sprint 5.612 -> ~5.89 b/s (sprint's +30% stacks multiplicatively).
+This 1.50x value is intended for testing. A server may correct movement that
+differs substantially from the expected position, causing rubber-banding or
+anti-cheat action. Expected numbers: walk 4.317 -> ~6.48 b/s, sprint 5.612
+-> ~8.42 b/s (sprint's +30% stacks multiplicatively).
 
 ## Build
 
@@ -47,9 +46,10 @@ in the selected profile's `mods` directory. Keep the Minecraft version at
 
 Join the server, walk in a straight line, and time yourself between two known
 points — or watch your position in F3 while strafing along an axis: you
-should cover ~5% more blocks per second than with the mod removed.
+should cover ~50% more blocks per second than with the mod removed, unless the
+server corrects the movement.
 
 ## Tune
 
-`SPEED_MULTIPLIER = 0.05` is the only knob. Keep it small: the point of 1.05x
-is being indistinguishable from normal movement in fights, not raw speed.
+`SPEED_MULTIPLIER = 0.50` is the current testing value. Reduce it before
+normal use if the server corrects movement or flags the client.
