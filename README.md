@@ -17,7 +17,7 @@ positions, and timestamps.
 5. [Feature 3 — Trajectory Predictor + Aim Overlay](#feature-3--trajectory-predictor--aim-overlay)
 6. [Feature 4 — Logout Spot Tracker](#feature-4--logout-spot-tracker)
 7. [Feature 5 — Status HUD Overlay](#feature-5--status-hud-overlay)
-8. [Feature 6 — 1.50× Walk/Sprint Speed (testing)](#feature-6--150-walksprint-speed-testing)
+8. [Feature 6 — 1.05× Walk/Sprint Speed](#feature-6--105-walksprint-speed)
 9. [The MCGLM Data Feed](#the-mcglm-data-feed)
 10. [Building the Fabric Mods](#building-the-fabric-mods)
 11. [Dawn Compatibility](#dawn-compatibility)
@@ -268,11 +268,11 @@ the feed mod isn't sending data.
 
 ---
 
-## Feature 6 — 1.50× Walk/Sprint Speed (testing)
+## Feature 6 — 1.05× Walk/Sprint Speed
 
 **File:** `speedmod/` (Fabric mod)
 
-**What it does:** Adds a permanent +50% `ADD_MULTIPLIED_TOTAL` modifier to the
+**What it does:** Adds a permanent +5% `ADD_MULTIPLIED_TOTAL` modifier to the
 `generic.movement_speed` attribute of your player entity. This makes you
 slightly faster in all situations — walking, sprinting, swimming, flying.
 
@@ -281,19 +281,17 @@ client's living-entity instance. No amount of keyboard/mouse input can change
 it from outside the game process. You have to modify the attribute from within.
 
 **Expected speeds:**
-| Movement | Vanilla | With 1.50× mod |
+| Movement | Vanilla | With 1.05× mod |
 |---|---|---|
-| Walking | 4.317 b/s | ~6.48 b/s |
-| Sprinting | 5.612 b/s | ~8.42 b/s |
-| Sneaking | 1.30 b/s | ~1.95 b/s |
+| Walking | 4.317 b/s | ~4.53 b/s |
+| Sprinting | 5.612 b/s | ~5.89 b/s |
+| Sneaking | 1.30 b/s | ~1.37 b/s |
 
-**Testing warning:** A 1.50× speed increase can cause server corrections,
-rubber-banding, or anti-cheat action. The modifier is transient (not saved with
-your player data), so it re-applies on world join, dimension change, or server
-switch.
+The modifier is transient (not saved with your player data), so it re-applies
+on world join, dimension change, or server switch.
 
-**Tuning:** The only config value is `SPEED_MULTIPLIER = 0.50` in
-`SpeedMod.java`. Reduce it before normal use if the server corrects movement.
+**Tuning:** The only config value is `SPEED_MULTIPLIER = 0.05` in
+`SpeedMod.java`.
 
 ---
 
@@ -515,7 +513,7 @@ MCGLM/
 └── speedmod/
     ├── README.md                      ← build instructions
     └── src/main/java/com/mcglm/speed/
-        └── SpeedMod.java              ← +50% testing movement speed modifier
+        └── SpeedMod.java              ← +5% movement speed modifier
 ```
 
 ---
