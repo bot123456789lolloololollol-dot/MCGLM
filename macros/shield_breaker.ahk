@@ -4,7 +4,7 @@
 ; Press/hold the hotkey: swap to the axe slot -> attack (axe hits roll the
 ; shield-disable) -> swap straight back to the sword.
 ;
-; Shield-disable facts (Java 1.21.x): an axe hit on a blocking shield
+; Shield-disable facts (Java Edition): an axe hit on a blocking shield
 ; disables it for 100 ticks (5 s). On most versions the chance is 25% base
 ; +5% per Efficiency level on the axe, so repeat hits are the point of the
 ; hold-to-repeat loop below.

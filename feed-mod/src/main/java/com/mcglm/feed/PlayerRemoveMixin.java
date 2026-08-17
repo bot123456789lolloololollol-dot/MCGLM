@@ -1,10 +1,10 @@
 package com.mcglm.feed;
 
 import com.google.gson.JsonObject;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.s2c.play.PlayerRemoveS2CPacket;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,22 +19,21 @@ import java.util.UUID;
  * per-tick LAST_KNOWN cache - and emit {"t":"logout", ...} for the Python
  * tracker, which draws the ghost marker at those coordinates.
  */
-@Mixin(ClientPlayNetworkHandler.class)
+@Mixin(ClientPacketListener.class)
 public abstract class PlayerRemoveMixin {
 
-    @Inject(method = "onPlayerRemove", at = @At("HEAD"))
-    private void mcglm$onPlayerRemove(PlayerRemoveS2CPacket packet, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        String dim = client.world != null
-                ? client.world.getRegistryKey().getValue().toString() : "?";
+    @Inject(method = "handlePlayerInfoRemove", at = @At("HEAD"))
+    private void mcglm$onPlayerRemove(ClientboundPlayerInfoRemovePacket packet, CallbackInfo ci) {
+        Minecraft client = Minecraft.getInstance();
+        String dim = client.level != null ? client.level.dimension().identifier().toString() : "?";
 
         for (UUID id : packet.profileIds()) {
             String name = FeedMod.NAMES.getOrDefault(id, id.toString().substring(0, 8));
 
             double[] pos = null;
-            if (client.world != null) {
-                for (PlayerEntity player : client.world.getPlayers()) {
-                    if (player.getUuid().equals(id)) {
+            if (client.level != null) {
+                for (AbstractClientPlayer player : client.level.players()) {
+                    if (player.getUUID().equals(id)) {
                         pos = new double[]{player.getX(), player.getY(), player.getZ()};
                         break;
                     }

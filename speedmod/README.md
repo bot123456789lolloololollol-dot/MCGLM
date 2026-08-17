@@ -18,14 +18,14 @@ sprint 5.612 -> ~5.89 b/s (sprint's +30% stacks multiplicatively).
 ## Build
 
 This directory is already a complete Fabric/Loom project targeting Minecraft
-1.21.1. Build it directly:
+26.2. Build it directly:
 
 ```
 .\gradlew.bat build
 ```
 
 The installable jar is `build/libs/mcglm-speed-1.0.0.jar`. It requires Fabric
-API in the Feather profile; mod metadata is already included.
+API in the Dawn Fabric profile; mod metadata is already included.
 
 ```json
 {
@@ -35,13 +35,13 @@ API in the Feather profile; mod metadata is already included.
   "name": "MCGLM Speed",
   "environment": "client",
   "entrypoints": { "client": ["com.mcglm.speed.SpeedMod"] },
-  "depends": { "fabricloader": ">=0.15.0", "minecraft": "~1.21" }
+  "depends": { "fabricloader": ">=0.19.3", "fabric-api": "*", "minecraft": "26.2" }
 }
 ```
 
-Add the resulting jar through Feather's local Fabric mod control, or place it
+Add the resulting jar through Dawn's local Fabric mod control, or place it
 in the selected profile's `mods` directory. Keep the Minecraft version at
-1.21.1, or rebuild against the exact profile version.
+26.2, or rebuild against the exact profile version.
 
 ## Verify
 

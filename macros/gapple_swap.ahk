@@ -4,7 +4,7 @@
 ; Press the hotkey: swap to the food/gapple slot -> hold right-click for the
 ; full eat duration -> release -> snap back to the weapon slot.
 ;
-; Timing facts (Java 1.21.x): eating any food takes exactly 32 ticks.
+; Timing facts (Java Edition): eating any food takes exactly 32 ticks.
 ; At 20 TPS that is 1600 ms. The script holds RMB for HoldMs = 1660 by
 ; default: the extra ~60 ms is a latency pad so a laggy tick doesn't swallow
 ; the final tick of consumption. Raising HoldMs is always safe (you just

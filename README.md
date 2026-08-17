@@ -1,4 +1,4 @@
-# MCGLM — PvP Toolkit for Feather Client / Java 1.21.x
+# MCGLM — PvP Toolkit for Dawn (formerly Feather) / Minecraft 26.2
 
 A collection of external macros (AutoHotkey v2), Python overlay tools, and two
 small Fabric mods for 1v1 PvP on the server you described (anarchy, no
@@ -20,7 +20,7 @@ positions, and timestamps.
 8. [Feature 6 — 1.05× Walk/Sprint Speed](#feature-6--105-walksprint-speed)
 9. [The MCGLM Data Feed](#the-mcglm-data-feed)
 10. [Building the Fabric Mods](#building-the-fabric-mods)
-11. [Feather Client Compatibility](#feather-client-compatibility)
+11. [Dawn Compatibility](#dawn-compatibility)
 12. [Troubleshooting](#troubleshooting)
 
 ---
@@ -49,8 +49,8 @@ positions, and timestamps.
 | **AutoHotkey v2** | Features 1, 2 | [autohotkey.com](https://www.autohotkey.com/) — get v2, not v1 |
 | **Python 3.10+** | Features 3, 4, 5 | [python.org](https://www.python.org/) — check "Add to PATH" |
 | **pygame + pynput** | Features 3, 4, 5 | `pip install -r requirements.txt` |
-| **Java 21 + Gradle** | Features 3–6 (mod builds only) | [adoptium.net](https://adoptium.net/) for Java; Gradle comes with the Fabric template |
-| **Fabric API** | feed-mod, speedmod | Included when you generate the template at [fabricmc.net/develop/template/](https://fabricmc.net/develop/template/) |
+| **Java 25 + Gradle 9.5.1** | Fabric mod builds | [adoptium.net](https://adoptium.net/) for Java; the repo includes Gradle wrappers |
+| **Fabric API 0.154.2+26.2** | feed-mod, speedmod | Enable Fabric API in the Dawn Fabric 26.2 profile |
 
 ---
 
@@ -97,7 +97,7 @@ axe hits through a shield.
 - `HitEvery` (default 300): minimum ms between axe hits while held. Lower = faster hits but risks cooldown skips.
 - `Repeat` (default true): set to false for single-tap behavior.
 
-**Vanilla mechanics note:** Axe shield-disable is chance-based on most 1.21.x
+**Vanilla mechanics note:** Axe shield-disable is chance-based in Java 26.2
 versions (25% base chance + 5% per Efficiency enchantment level on the axe).
 This is exactly why the macro repeats while held — you'll see "Shield disabled!"
 in chat when the roll succeeds.
@@ -156,7 +156,7 @@ below 1600 will cause dropped eats.
   error and a lock indicator. Optionally nudges your crosshair toward the
   solution (aim assist) and auto-releases your bow draw when locked.
 
-**Physics constants (Java Edition, verified 1.21.x):**
+**Physics constants (Java Edition 26.2):**
 
 | Projectile | Launch speed | Drag/tick | Gravity/tick² |
 |---|---|---|---|
@@ -348,8 +348,8 @@ Both mods (`feed-mod/` and `speedmod/`) follow the same build process:
 
 ### Step 1: Match the Minecraft profile
 
-The included projects target **Minecraft 1.21.1**, Java 21, Fabric Loader
-0.16.5, and Fabric API 0.105.0. In Feather, use a **Fabric 1.21.1** profile.
+The included projects target **Minecraft 26.2**, Java 25, Fabric Loader
+0.19.3, and Fabric API 0.154.2+26.2. In Dawn, use a **Fabric 26.2** profile.
 A jar built for another Minecraft minor version is not interchangeable.
 
 ### Step 2: Build the included projects
@@ -365,9 +365,9 @@ cd ..\speedmod
 The installable jars are `feed-mod\build\libs\mcglm-feed-1.0.0.jar` and
 `speedmod\build\libs\mcglm-speed-1.0.0.jar`.
 
-### Step 3: Add them to Feather
+### Step 3: Add them to Dawn
 
-In Feather's selected Fabric profile, open the Mods area and add both local
+In Dawn's selected Fabric profile, open the Mods area and add both local
 Fabric jars. Enable them before launching. If the launcher has no local-mod
 control, copy both jars into that profile's `mods` directory. Fabric API must
 also be enabled; MCGLM does not bundle it.
@@ -377,107 +377,71 @@ are complete Fabric/Loom projects.
 
 ### Version changes
 
-If your profile is not 1.21.1, update the four version properties in
+If your profile is not 26.2, update the version properties in
 `feed-mod/gradle.properties` and `speedmod/gradle.properties` together, then
-rebuild. Yarn names and mixin methods can change between minor versions, so a
+rebuild. Mojang names and mixin methods can change between minor versions, so a
 successful build is required before installing the jars.
 
-### Legacy template workflow (not required)
+### Historical template workflow (do not use for this project)
 
-Go to [fabricmc.net/develop/template/](https://fabricmc.net/develop/template/):
-1. Select your **exact Minecraft version** (e.g., 1.21.1 or 1.21.4).
-2. Choose **Yarn mappings** (not Mojang).
-3. Select **Client environment**.
-4. Check **Fabric API**.
-5. Click Download.
+This old template workflow is retained only as historical context. Do not use
+it: the repository already contains complete 26.2 projects and uses Mojang's
+official names rather than Yarn mappings.
 
-### Step 2: Add the MCGLM source files
+The 26.2 source, metadata, and mixin resources are already present in the
+two module directories. Do not copy them into a separate old-version template.
 
-Unzip the template and copy the Java files into its source tree:
+### Historical template notes
 
-**For feed-mod:**
-```
-template/src/main/java/com/mcglm/feed/FeedMod.java
-template/src/main/java/com/mcglm/feed/PlayerRemoveMixin.java
-```
-Create this file:
-```
-template/src/main/resources/mcglm-feed.mixins.json
-```
-With content:
-```json
-{
-  "required": true,
-  "package": "com.mcglm.feed",
-  "compatibilityLevel": "JAVA_21",
-  "client": ["PlayerRemoveMixin"],
-  "injectors": { "defaultRequire": 1 }
-}
-```
-Update `template/src/main/resources/fabric.mod.json` — see `feed-mod/README.md`.
+The template-copy notes above are obsolete. Build the included modules directly
+and install their jars through Dawn.
 
-**For speedmod:**
-```
-template/src/main/java/com/mcglm/speed/SpeedMod.java
-```
-Update `fabric.mod.json` — see `speedmod/README.md`.
+### Historical Yarn mapping notes
 
-### Step 3: Build
-
-```
-gradlew build
-```
-The output jar is in `build/libs/`.
-
-### Step 4: Install
-
-Copy the jar to your Minecraft mods folder. On Feather Client, add it through
-the mods screen. See [Feather Client Compatibility](#feather-client-compatibility) if it doesn't work.
-
-### Yarn mapping drift between versions
+This section is retained only as a warning. Minecraft 26.2 uses Mojang's
+official names; the current source no longer uses Yarn mappings.
 
 Field and method names in Yarn change between minor Minecraft versions. The code
 has comments at every drift-prone spot. If compilation fails, open the named
 class in your IDE, find the equivalent member, and update the single line.
 Known drift points:
 
-| 1.21.0 / 1.21.1 | 1.21.2+ | In file |
-|---|---|---|
-| `EntityAttributes.GENERIC_MOVEMENT_SPEED` | `EntityAttributes.MOVEMENT_SPEED` | SpeedMod.java |
-| `getStatusEffects()` | `getStatusEffectInstances()` | FeedMod.java |
-| `onPlayerList` (method name) | `handlePlayerList` | PlayerRemoveMixin.java |
+| Historical pre-26.1 | 26.1+ |
+|---|---|
+| Yarn names | Mojang names |
 
 ---
 
-## Feather Client Compatibility
+## Dawn Compatibility
 
 **Straightforward — no issues:**
 
-| Feature | Works on Feather? | Notes |
+| Feature | Works on Dawn? | Notes |
 |---|---|---|
-| **1. Shield-breaker macro** | ✅ Yes | Pure external input — Feather doesn't interfere. |
-| **2. Gapple swap macro** | ✅ Yes | Same as above. Runs as a standalone AHK process. |
-| **6. Speed mod** | ✅ Yes | Feather is Fabric-based. Add the jar via the mods screen. |
+| **1. Shield-breaker macro** | ✅ Yes | Pure external input — Dawn does not load it. |
+| **2. Gapple swap macro** | ✅ Yes | Runs as a standalone AHK process. |
+| **6. Speed mod** | ✅ Yes, with custom Fabric mods enabled | Add the jar through Dawn. |
 
 **Works, but requires configuration:**
 
-| Feature | Works on Feather? | Notes |
+| Feature | Works on Dawn? | Notes |
 |---|---|---|
 | **3. Trajectory overlay** | ✅ Yes (with feed-mod) | Requires the feed Fabric mod. See below. |
 | **4. Logout tracker** | ✅ Yes (with feed-mod) | Same — requires the feed mod. |
 | **5. Status HUD** | ✅ Yes (with feed-mod) | Same. |
 
-**About loading third-party mod jars on Feather:**
+**About loading third-party mod jars on Dawn:**
 
-Feather advertises support for adding your own Fabric mods. Use its local-mod
+The client is now called Dawn, formerly Feather, and advertises support for
+adding your own Fabric mods. Use Dawn's local-mod
 control when available; if a particular release blocks custom jars, use a
-normal Fabric 1.21.1 profile in the official launcher with the same server and
-account. The Python overlays and AHK macros remain external to Feather and do
+normal Fabric 26.2 profile in the official launcher with the same server and
+account. The Python overlays and AHK macros remain external to Dawn and do
 not belong in the `mods` directory.
 
 **The AHK macros (features 1 & 2) always work regardless** — they're separate
-processes sending keyboard/mouse input to whatever window is focused. Feather
-doesn't intercept or block external input.
+processes sending keyboard/mouse input to whatever window is focused. Dawn
+doesn't need to load those external tools.
 
 ---
 
@@ -520,9 +484,9 @@ doesn't intercept or block external input.
 
 ### Mod won't compile (Gradle errors)
 
-- Check the [Yarn mapping drift table](#yarn-mapping-drift-between-versions) above and update the named fields.
-- Make sure you generated the template for the **exact same Minecraft version** you're playing on.
-- If you see "cannot find symbol: class EntityAttributes", you may need to add `fabric-api` as a dependency (it's included in the template if you checked the box).
+- Make sure Dawn is using a **Fabric 26.2** profile and that Java 25 is installed.
+- Run `gradlew.bat build --refresh-dependencies` from the affected module.
+- Do not copy a 1.21.x jar into a 26.2 profile; these are different toolchain generations.
 
 ---
 

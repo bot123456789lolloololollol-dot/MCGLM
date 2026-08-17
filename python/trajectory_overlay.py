@@ -27,7 +27,7 @@ The shooter's own velocity is added to the launch velocity (vanilla does this
 in AbstractArrow/ProjectileEntity#shootFromRotation), which is why the feed
 sends your per-axis velocity.
 
-Constants verified against 1.21.x behavior; if a minor update retunes
+Constants verified against current Java behavior; if a future update retunes
 projectiles, edit SPECS below.
 """
 

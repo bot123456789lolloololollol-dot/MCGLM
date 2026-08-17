@@ -4,13 +4,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.phys.Vec3;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -27,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * pick them up. Also keeps a last-known-position cache used by
  * PlayerRemoveMixin to report exact logout coordinates.
  *
- * Mappings: Yarn 1.21.x. See feed-mod/README.md for the drift caveats.
+ * Minecraft 26.2 uses Mojang's official names and local-only UDP output.
  */
 public class FeedMod implements ClientModInitializer {
 
@@ -50,43 +51,39 @@ public class FeedMod implements ClientModInitializer {
             throw new IllegalStateException("MCGLM feed: cannot open UDP socket", e);
         }
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null && client.world != null) tick(client);
+            if (client.player != null && client.level != null) tick(client);
         });
     }
 
-    private void tick(MinecraftClient client) {
-        ClientPlayerEntity p = client.player;
-        String dim = client.world.getRegistryKey().getValue().toString();
+    private void tick(Minecraft client) {
+        LocalPlayer p = client.player;
+        String dim = client.level.dimension().identifier().toString();
 
         // ---- self state ("t":"p") ----
         JsonObject self = new JsonObject();
-        Vec3d pos = p.getPos(), vel = p.getVelocity();
+        Vec3 pos = p.position(), vel = p.getDeltaMovement();
         self.addProperty("t", "p");
         self.addProperty("x", pos.x);   self.addProperty("y", pos.y);   self.addProperty("z", pos.z);
-        self.addProperty("yaw", p.getYaw()); self.addProperty("pitch", p.getPitch());
+        self.addProperty("yaw", p.getYRot()); self.addProperty("pitch", p.getXRot());
         self.addProperty("vx", vel.x);  self.addProperty("vy", vel.y);  self.addProperty("vz", vel.z);
         self.addProperty("hp", p.getHealth());
         self.addProperty("max_hp", p.getMaxHealth());
-        self.addProperty("armor", p.getArmor());
+        self.addProperty("armor", p.getArmorValue());
         self.addProperty("armor_dur", averageArmorDurability(p));
-        self.addProperty("food", p.getHungerManager().getFoodLevel());
-        self.addProperty("held", Registries.ITEM.getId(p.getMainHandStack().getItem()).toString());
-        self.addProperty("off", Registries.ITEM.getId(p.getOffHandStack().getItem()).toString());
-        self.addProperty("totems", p.getInventory().count(Items.TOTEM_OF_UNDYING));
+        self.addProperty("food", p.getFoodData().getFoodLevel());
+        self.addProperty("held", BuiltInRegistries.ITEM.getKey(p.getMainHandItem().getItem()).toString());
+        self.addProperty("off", BuiltInRegistries.ITEM.getKey(p.getOffhandItem().getItem()).toString());
+        self.addProperty("totems", countTotems(p));
         self.addProperty("held_dur", heldDurability(p));
         self.addProperty("using_item", p.isUsingItem());
-        self.addProperty("use_ticks", p.getItemUseTime());
-        self.addProperty("active_item", Registries.ITEM.getId(p.getActiveItem().getItem()).toString());
+        self.addProperty("use_ticks", p.getTicksUsingItem());
+        self.addProperty("active_item", BuiltInRegistries.ITEM.getKey(p.getActiveItem().getItem()).toString());
         self.addProperty("dim", dim);
         JsonArray effects = new JsonArray();
-        // Yarn 1.21.0-1.21.1: getStatusEffects()
-        // Yarn 1.21.2+:       getStatusEffectInstances()  (same return type, different name)
-        // If compilation fails here, search LivingEntity for the method returning
-        // the collection of StatusEffectInstance.
-        p.getStatusEffects().forEach(e -> {
+        p.getActiveEffects().forEach(e -> {
             JsonObject o = new JsonObject();
-            o.addProperty("id", e.getEffectType().getKey()
-                    .map(key -> key.getValue().toString()).orElse("unknown"));
+            o.addProperty("id", e.getEffect().unwrapKey()
+                    .map(key -> key.identifier().toString()).orElse("unknown"));
             o.addProperty("ticks", e.getDuration());
             effects.add(o);
         });
@@ -94,13 +91,13 @@ public class FeedMod implements ClientModInitializer {
         send(self);
 
         // ---- nearby players ("t":"tgt") + logout position cache ----
-        LAST_KNOWN.put(p.getUuid(), new double[]{pos.x, pos.y, pos.z});
-        for (PlayerEntity other : client.world.getPlayers()) {
+        LAST_KNOWN.put(p.getUUID(), new double[]{pos.x, pos.y, pos.z});
+        for (Player other : client.level.players()) {
             if (other == p) continue;
-            Vec3d op = other.getPos(), ov = other.getVelocity();
-            LAST_KNOWN.put(other.getUuid(), new double[]{op.x, op.y, op.z});
-            NAMES.put(other.getUuid(), other.getName().getString());
-            if (other.squaredDistanceTo(p) > TARGET_RANGE_SQ) continue;
+            Vec3 op = other.position(), ov = other.getDeltaMovement();
+            LAST_KNOWN.put(other.getUUID(), new double[]{op.x, op.y, op.z});
+            NAMES.put(other.getUUID(), other.getName().getString());
+            if (other.distanceToSqr(p) > TARGET_RANGE_SQ) continue;
             JsonObject t = new JsonObject();
             t.addProperty("t", "tgt");
             t.addProperty("id", other.getId());
@@ -113,22 +110,33 @@ public class FeedMod implements ClientModInitializer {
     }
 
     /** 0..1 average remaining durability across worn, damageable armor. */
-    private static float averageArmorDurability(ClientPlayerEntity p) {
+    private static float averageArmorDurability(LocalPlayer p) {
         float sum = 0f;
         int n = 0;
-        for (ItemStack s : p.getInventory().armor) {   // 1.21.2+: check accessor name
-            if (s.isEmpty() || !s.isDamageable()) continue;
-            sum += 1.0f - (float) s.getDamage() / s.getMaxDamage();
+        for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST,
+                EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+            ItemStack s = p.getItemBySlot(slot);
+            if (s.isEmpty() || !s.isDamageableItem()) continue;
+            sum += 1.0f - (float) s.getDamageValue() / s.getMaxDamage();
             n++;
         }
         return n == 0 ? 0f : sum / n;
     }
 
     /** 0..1 remaining durability of the held mainhand item, or 0 if undamageable. */
-    private static float heldDurability(ClientPlayerEntity p) {
-        ItemStack held = p.getMainHandStack();
-        if (held.isEmpty() || !held.isDamageable()) return 0f;
-        return 1.0f - (float) held.getDamage() / held.getMaxDamage();
+    private static float heldDurability(LocalPlayer p) {
+        ItemStack held = p.getMainHandItem();
+        if (held.isEmpty() || !held.isDamageableItem()) return 0f;
+        return 1.0f - (float) held.getDamageValue() / held.getMaxDamage();
+    }
+
+    private static int countTotems(LocalPlayer p) {
+        int count = 0;
+        for (ItemStack stack : p.getInventory().getNonEquipmentItems()) {
+            if (stack.is(Items.TOTEM_OF_UNDYING)) count += stack.getCount();
+        }
+        if (p.getOffhandItem().is(Items.TOTEM_OF_UNDYING)) count += p.getOffhandItem().getCount();
+        return count;
     }
 
     /** Fire-and-forget UDP send; never touch game threads on failure. */

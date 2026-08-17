@@ -3,3 +3,4 @@ __pycache__/
 python/logout_spots.json
 **/build/
 **/.gradle/
+.tools/
